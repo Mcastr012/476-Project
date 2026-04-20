@@ -4,8 +4,9 @@ Generate answers for the CSE 476 final project submission file.
 This script keeps the same filename as the provided template, but now runs a
 real reasoning agent instead of writing placeholders.
 """
-
 from __future__ import annotations
+
+from dotenv import load_dotenv
 
 import argparse
 import json
@@ -15,6 +16,7 @@ from typing import Any, Dict, List
 
 from reasoning_agent import build_agent
 
+load_dotenv()
 
 INPUT_PATH = Path("cse_476_final_project_test_data.json")
 OUTPUT_PATH = Path("cse_476_final_project_answers.json")
