@@ -1,5 +1,33 @@
-This project is a reasoning agent that answers the test questions and saves the results in the Json format the assignment needs. generate_answer_template.py runs everything, reasoning_agent.py has the main logic, the test questions are in cse_476_final_project_test_data.json and the output goes into cse_476_final_project_answers.json.
+This project answers the released test questions and saves them in the JSON format needed for submission.
 
-To run it, I need to be on the ASU network or VPN, have a SOL API key, and make a .env file with the key, API base, and model name. I also need the dev data file available in the right location.
+To run it offline without SOL, go into the project folder and run:
 
-The agent uses different methods depending on the question type, like code generation for coding questions.
+```bash
+cd /Users/marcocastro/Desktop/476-Project/cse476_final_project_submission
+python3 -m pip install --user python-dotenv
+python3 generate_answer_template.py --backend nearest
+```
+
+This offline mode does not need SOL, VPN, or an API key. It runs through the full question file and writes a full answers JSON, but it is mainly for testing that the code works from start to finish.
+
+If you want to run the real model version, make a `.env` file in this folder with:
+
+```env
+OPENAI_API_KEY=your_key_here
+API_BASE=https://openai.rc.asu.edu/v1
+MODEL_NAME=qwen3-30b-a3b-instruct-2507
+```
+
+Then run:
+
+```bash
+python3 generate_answer_template.py
+```
+
+This is the real model run.
+
+If a run stops in the middle, you can continue with:
+
+```bash
+python3 generate_answer_template.py --resume
+```
