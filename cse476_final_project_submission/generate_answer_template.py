@@ -6,8 +6,6 @@ real reasoning agent instead of writing placeholders.
 """
 from __future__ import annotations
 
-from dotenv import load_dotenv
-
 import argparse
 import json
 import sys
@@ -16,7 +14,13 @@ from typing import Any, Dict, List
 
 from reasoning_agent import build_agent
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
+if load_dotenv is not None:
+    load_dotenv()
 
 INPUT_PATH = Path("cse_476_final_project_test_data.json")
 OUTPUT_PATH = Path("cse_476_final_project_answers.json")
@@ -147,7 +151,12 @@ def main() -> None:
     domain_counts: Dict[str, int] = {}
 
     for idx in range(start_index, end_index):
-        result = agent.solve(questions[idx]["input"])
+        try:
+            result = agent.solve(questions[idx]["input"])
+        except Exception:
+            # Save progress before stopping so a long run can resume after a transient API failure.
+            save_checkpoint(CHECKPOINT_PATH, idx, answers)
+            raise
         answers.append({"output": result.answer})
         total_calls += result.calls_used
         domain_counts[result.domain] = domain_counts.get(result.domain, 0) + 1

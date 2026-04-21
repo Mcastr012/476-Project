@@ -909,7 +909,11 @@ class ReasoningAgent:
             calls_used=calls_used,
         )
         normalized_first = self.normalizer.normalize(first_answer, parsed, "math")
+        # For a fast run, keep math to one call unless the question looks hard
+        # and there is enough call budget left to do a second pass plus a judge step.
         if self._question_complexity(question, parsed) < 3:
+            return normalized_first, calls_used, notes
+        if self.max_calls_per_question - calls_used < 2:
             return normalized_first, calls_used, notes
 
         second_prompt = (
@@ -926,6 +930,8 @@ class ReasoningAgent:
         normalized_second = self.normalizer.normalize(second_answer, parsed, "math")
 
         if self._answers_agree(normalized_first, normalized_second, parsed, "math"):
+            return normalized_first, calls_used, notes
+        if self.max_calls_per_question - calls_used < 1:
             return normalized_first, calls_used, notes
 
         judge_prompt = (
@@ -969,6 +975,8 @@ class ReasoningAgent:
 
         normalized = self.normalizer.normalize(answer, parsed, "common_sense")
         if self._looks_well_formed(normalized, parsed, "common_sense"):
+            return normalized, calls_used, notes
+        if self.max_calls_per_question - calls_used < 1:
             return normalized, calls_used, notes
 
         repair_prompt = (
@@ -1018,6 +1026,8 @@ class ReasoningAgent:
         validation_error = self._validate_python_answer(parsed.code_prefix, normalized)
         if validation_error is None:
             return normalized, calls_used, notes
+        if self.max_calls_per_question - calls_used < 1:
+            return normalized, calls_used, notes
 
         repair_prompt = (
             "Fix the Python function body below.\n"
@@ -1064,6 +1074,8 @@ class ReasoningAgent:
         normalized = self.normalizer.normalize(draft, parsed, "planning")
         validation_error = self.validator.validate(question, normalized)
         if validation_error is None:
+            return normalized, calls_used, notes
+        if self.max_calls_per_question - calls_used < 1:
             return normalized, calls_used, notes
 
         repair_prompt = (
